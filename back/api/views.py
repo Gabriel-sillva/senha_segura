@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from rest_framework.decorators import api_view ### é usado para transformar funções normais do Django em views compatíveis com o Django REST Framework (DRF).
-from rest_framework.response import response  ### a classe usada no Django REST Framework (DRF) para retornar respostas HTTP nas suas views.    
+from rest_framework.response import Response  ### a classe usada no Django REST Framework (DRF) para retornar respostas HTTP nas suas views.    
 from .models import HistoricoSenha
 from .serializers import HistoricoSenhaSerializers
 import random, string, hashlib ### Esse import junta três módulos diferentes do Python padrão que são muito úteis quando você trabalha com geração de senhas, tokens ou qualquer tipo de hash:
@@ -20,17 +20,17 @@ def gerar_senha(request):
     senha = ''.join(random.choice(caracteres) for _ in range(12))
     hash_senha = hashlib.sha1(senha.encode()).hexdigest()
     HistoricoSenha.objects.create(hash_senha=hash_senha)
-    return response({'senha': senha})
+    return Response({'senha': senha})
 
 ### Verificar se senha já fi usada
 @api_view(['POST'])
 def verifcar_senha(request):
     senha = request.data.get('senha')
     if not senha:
-        return response({'erro': 'Senha não informada'}, status=400)
-    hash_senha = hashlib.sha1(senha.encode().hexdigest())
+        return Response({'erro': 'Senha não informada'}, status=400)
+    hash_senha = hashlib.sha1(senha.encode()).hexdigest()
     vazada = HistoricoSenha.objects.filter(hash_senha=hash_senha).exists()
-    return response({'vazada': vazada})
+    return Response({'vazada': vazada})
 
 
 ### listar Hisorico de senhar (hashadas)
@@ -38,6 +38,6 @@ def verifcar_senha(request):
 def listar_historico(request):
     historico = HistoricoSenha.objects.all()
     serializer = HistoricoSenhaSerializers(historico, many=True)
-    return response(serializer.data)
+    return Response(serializer.data)
 
 ### listar_historico mostra todos os registros de senhas hashadas, sem expor as senhas originais.
